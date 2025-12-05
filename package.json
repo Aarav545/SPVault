@@ -1,0 +1,18 @@
+{
+  "name": "sp-vault",
+  "version": "1.0.0",
+  "description": "SP Vault - A secure password vault service",
+  "main": "server/index.js",
+  "scripts": {
+    "install-frontend": "cd frontend && npm install",
+    "install-backend": "cd server && npm install",
+    "install-all": "npm run install-backend && npm run install-frontend",
+    "dev-frontend": "cd frontend && npm start",
+    "dev-backend": "cd server && npm run dev",
+    "build-frontend": "cd frontend && npm run build"
+  },
+  "keywords": ["password-vault", "security", "authentication"],
+  "author": "",
+  "license": "ISC"
+}
+
