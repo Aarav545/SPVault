@@ -30,7 +30,7 @@ if [ "$choice" = "1" ]; then
     echo "  brew services start mongodb-community"
     echo ""
     echo "For VM deployment, use Database VM IP:"
-    echo "  mongodb://192.168.100.30:27017/spvault"
+    echo "  mongodb://172.16.190.141:27017/spvault"
     echo ""
     read -p "Enter MongoDB connection (default: mongodb://localhost:27017/spvault): " mongo_input
     if [ -z "$mongo_input" ]; then

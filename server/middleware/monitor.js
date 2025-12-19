@@ -1,3 +1,4 @@
+// Request logging middleware: logs all requests/responses to file with automatic PPI censoring
 const fs = require('fs');
 const path = require('path');
 
@@ -9,13 +10,12 @@ if (!fs.existsSync(logsDir)) {
 
 const logFile = path.join(logsDir, 'requests.log');
 
-// Patterns to censor (PPI - Personally Identifiable Information)
+// Patterns to censor sensitive data (passwords, PINs, tokens, emails)
 const censorPatterns = [
   { pattern: /"password"\s*:\s*"[^"]*"/gi, replacement: '"password": "[CENSORED]"' },
   { pattern: /"pin"\s*:\s*"[^"]*"/gi, replacement: '"pin": "[CENSORED]"' },
   { pattern: /"token"\s*:\s*"[^"]*"/gi, replacement: '"token": "[CENSORED]"' },
   { pattern: /"email"\s*:\s*"([^"]*)"/gi, replacement: (match, email) => {
-    // Partially censor email (show first 2 chars and domain)
     const [localPart, domain] = email.split('@');
     if (localPart.length <= 2) {
       return `"email": "[CENSORED]@${domain}"`;
@@ -24,10 +24,9 @@ const censorPatterns = [
   }},
 ];
 
-// Function to censor sensitive data
+// Function to censor sensitive data in request/response bodies
 function censorSensitiveData(data) {
   let censored = JSON.stringify(data);
-  
   censorPatterns.forEach(({ pattern, replacement }) => {
     if (typeof replacement === 'function') {
       censored = censored.replace(pattern, replacement);
@@ -35,22 +34,21 @@ function censorSensitiveData(data) {
       censored = censored.replace(pattern, replacement);
     }
   });
-  
   return censored;
 }
 
-// Logging middleware
+// Logging middleware: intercepts requests and responses, logs them to file
 const logRequest = (req, res, next) => {
   const timestamp = new Date().toISOString();
   const method = req.method;
   const url = req.originalUrl || req.url;
   const ip = req.ip || req.connection.remoteAddress;
 
-  // Capture request body (will be censored)
+  // Capture and censor request body
   const requestBody = req.body ? { ...req.body } : {};
   const censoredRequestBody = censorSensitiveData(requestBody);
 
-  // Log request
+  // Log request entry
   const logEntry = {
     timestamp,
     type: 'REQUEST',
@@ -60,13 +58,11 @@ const logRequest = (req, res, next) => {
     body: JSON.parse(censoredRequestBody)
   };
 
-  // Write to log file
   fs.appendFileSync(logFile, JSON.stringify(logEntry) + '\n');
 
-  // Capture response
+  // Override res.send to capture and log responses
   const originalSend = res.send;
   res.send = function(data) {
-    // Log response
     let responseData;
     try {
       responseData = JSON.parse(data);
@@ -85,8 +81,6 @@ const logRequest = (req, res, next) => {
     };
 
     fs.appendFileSync(logFile, JSON.stringify(responseLogEntry) + '\n');
-
-    // Call original send
     originalSend.call(this, data);
   };
 

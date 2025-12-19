@@ -1,7 +1,9 @@
+// JWT authentication middleware - verifies JWT tokens on protected routes
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
+// Middleware function - extracts token from Authorization header and verifies it
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
@@ -14,7 +16,7 @@ const authenticateToken = (req, res, next) => {
     if (err) {
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
-    req.user = user;
+    req.user = user; // Attach decoded user data to request object
     next();
   });
 };

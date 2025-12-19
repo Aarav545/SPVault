@@ -1,3 +1,4 @@
+// Register component - handles new user account creation with email, password, and PIN
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -5,6 +6,7 @@ import './Login.css';
 
 const Register = () => {
   const navigate = useNavigate();
+  // Form state management
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -15,6 +17,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Handle input field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -24,6 +27,7 @@ const Register = () => {
     setError('');
   };
 
+  // Handle PIN input changes - validates numeric input and auto-focuses next field
   const handlePinChange = (index, value) => {
     if (value.length > 1 || !/^\d*$/.test(value)) return;
     const newPin = [...formData.pin];
@@ -39,18 +43,20 @@ const Register = () => {
     }
   };
 
+  // Handle backspace key on PIN inputs - moves focus to previous field
   const handlePinKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !formData.pin[index] && index > 0) {
       document.getElementById(`pin-${index - 1}`).focus();
     }
   };
 
+  // Handle form submission - validates inputs and sends registration request to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    // Validation
+    // Client-side validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
@@ -71,7 +77,7 @@ const Register = () => {
     }
 
     try {
-      const response = await axios.post('/api/auth/register', {
+      const response = await axios.post('http://172.16.190.142:5001/api/auth/register', {
         email: formData.email,
         password: formData.password,
         pin: pin
